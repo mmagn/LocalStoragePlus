@@ -1,5 +1,5 @@
 /*!
- * jQuery LocalStoragePlus Plugin.
+ * LocalStoragePlus Plugin. (Mathieu MAGNIN)
  * Version : 0.2
  * https://github.com/mmagn/LocalStoragePlus
  * Requires jQuery 1.4.2 
