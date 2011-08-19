@@ -1,5 +1,5 @@
 /*!
- * LocalStoragePlus Plugin. (Mathieu MAGNIN)
+ * LocalStoragePlus Plugin (Mathieu MAGNIN).
  * Version : 0.2
  * https://github.com/mmagn/LocalStoragePlus
  * Requires jQuery 1.4.2 
@@ -13,14 +13,15 @@
 	$.lsplus = {
 
 		settings : {
-			'mode' : 'prod'	
+			'mode' : 'prod',
+			'storageMode' : 'local'
 		},	
-		
+
 		init:function(options){
 			var self = $.lsplus;
 			$.extend(self.settings, options);
 		},
-		
+
 		isDebug: function(){
 			var self = $.lsplus;
 			if(self.settings.mode === 'debug'){
@@ -28,7 +29,7 @@
 			}
 			return false;
 		},
-		
+
 		isEnabled : function(){		
 			try{
 				return 'localStorage' in window && window['localStorage'] !== null;
@@ -38,16 +39,43 @@
 			}
 		},
 		
-		storeItem : function(key, itemToStore, expirationDate){
-			var self = $.lsplus;		
+		// store an object
+		storeItem : function(item){
+			var self = $.lsplus;	
 			
-			if(self.isEnabled()){		
-				var objectToStore = { 
-					value : itemToStore,
-					date : expirationDate
+			// check if localStorage is enabled
+			if(self.isEnabled()){	
+			
+				// create an item with default options
+				var itemToStore = {
+					'key' : null,
+					'value' : null,
+					'expirationDate' : null
 				};
+				
+				// extends the default item with new options
+				$.extend(itemToStore, item);
+				
+				// check if the key is valid
+				if(itemToStore.key == null || itemToStore.key == undefined){
+					logError('key is null or undefined');
+					return;
+				}
+				
+				// check if the value is valid
+				if(itemToStore.value == undefined){
+					logError('value is undefined');
+					return;
+				}
+				
+				// prepare the object to store
+				var objectToStore = { 
+					'value' : itemToStore.value,
+					'expirationDate' : itemToStore.expirationDate
+				};
+				
 				try {
-					localStorage.setItem(key, JSON.stringify(objectToStore)); 
+					localStorage.setItem(itemToStore.key, JSON.stringify(objectToStore)); 
 					self.logDebug('item stored : ' + key);
 				}
 				catch(e){
@@ -57,32 +85,48 @@
 				}
 			}
 		},
-		
+
+		// retreive an item from storage
 		getItem : function (key){
 			var self = $.lsplus;		
-			
+
+			// if localstorage is enabled
 			if(self.isEnabled()){	
+			
+				// retreive and parse the item
 				var item = JSON.parse(localStorage.getItem(key));
 				
-				if(item !== null && item.date > (new Date()).getTime()){
-					self.logDebug('item retreived : ' + key);
-					return item.value;
+				if(item !== null){
+				
+					// if item has an expiration date
+					if(item.expirationDate != null){
+					
+						// check date validity
+						if(item.date > (new Date()).getTime())
+						{
+							self.logDebug('item retreived : ' + key);
+							return item.value;
+						}else{
+							deleteItem(key);
+						}
+					}
 				}
 			}
-			
 			return null;
 		},
 		
+		// delete an item 
 		deleteItem : function (key){
 			var self = $.lsplus;		
-			
+
 			if(self.isEnabled()){	
 				localStorage.removeItem(key);
+				self.logDebug('item deleted : ' + key);
 			}
-			
-			return null;
+
+			return ;
 		},
-		
+
 		// clean expired items
 		clean: function(){
 			var self = $.lsplus;
@@ -99,13 +143,22 @@
 				self.logDebug('Cleaning result : ' + counter + ' items deleted.');
 			}
 		},
-		
+
+		// log to console if debugmode is enabled
 		logDebug:function(message){
 			var self = $.lsplus;
 			if(self.isDebug()){
-				if (typeof(console) !== 'undefined' && console != null) {
+				if (typeof(console) !== 'undefined' && console !== null) {
 					console.log('DEBUG >> ' + message);
 				}
+			}
+		},
+
+		// log to console an error
+		logError:function(message){
+			var self = $.lsplus;
+			if (typeof(console) !== 'undefined' && console !== null) {
+				console.log('ERROR >> ' + message);
 			}
 		}
 	};
