@@ -32,7 +32,7 @@
 
 		isEnabled : function(){		
 			try{
-				return 'localStorage' in window && window['localStorage'] !== null;
+				return 'localStorage' in window && window.localStorage !== null;
 			}
 			catch(e){
 				return false;
@@ -49,7 +49,7 @@
 				// create an item with default options
 				var itemToStore = {
 					'key' : null,
-					'value' : null,
+					'data' : null,
 					'expirationDate' : null
 				};
 				
@@ -57,26 +57,26 @@
 				$.extend(itemToStore, item);
 				
 				// check if the key is valid
-				if(itemToStore.key == null || itemToStore.key == undefined){
-					logError('key is null or undefined');
+				if(itemToStore.key === null || itemToStore.key === undefined){
+					self.logError('key is null or undefined');
 					return;
 				}
 				
-				// check if the value is valid
-				if(itemToStore.value == undefined){
-					logError('value is undefined');
+				// check if the data is valid
+				if(itemToStore.data === undefined){
+					self.logError('data is undefined');
 					return;
 				}
 				
 				// prepare the object to store
 				var objectToStore = { 
-					'value' : itemToStore.value,
+					'data' : itemToStore.data,
 					'expirationDate' : itemToStore.expirationDate
 				};
 				
 				try {
 					localStorage.setItem(itemToStore.key, JSON.stringify(objectToStore)); 
-					self.logDebug('item stored : ' + key);
+					self.logDebug('item stored : ' + itemToStore.key);
 				}
 				catch(e){
 					if (console && console.log) {
@@ -99,16 +99,19 @@
 				if(item !== null){
 				
 					// if item has an expiration date
-					if(item.expirationDate != null){
+					if(item.expirationDate !== null){
 					
 						// check date validity
 						if(item.date > (new Date()).getTime())
 						{
 							self.logDebug('item retreived : ' + key);
-							return item.value;
+							return item.data;
 						}else{
 							deleteItem(key);
 						}
+						
+					}else{
+						return item.data;					
 					}
 				}
 			}
